@@ -1,0 +1,20 @@
+# Nbadaw mn base image dyal node
+FROM node:20
+
+# N7ott directory li ghadi nkhdmo fih
+WORKDIR /app
+
+# Ncopyiw les fichiers npm
+COPY package*.json ./
+
+# Ninstalliw les packages (express, etc.)
+RUN npm install
+
+# Ncopyiw lkol
+COPY . .
+
+# N7ell port 3000
+EXPOSE 3000
+
+# Nlaunchiw l app
+CMD ["node", "index.js"]
