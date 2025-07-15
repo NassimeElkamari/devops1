@@ -6,8 +6,16 @@ services:
       context: ./backend
     ports:
       - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=672002
+      - DB_NAME=devops
+    depends_on:
+      - mysql
     networks:
       - mynetwork
+
 
   frontend:
     build:
@@ -27,6 +35,22 @@ services:
     networks:
       - mynetwork
 
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 672002
+      MYSQL_DATABASE: devops
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - mynetwork
+
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  mysql-data:
