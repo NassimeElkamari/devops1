@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_DIR = "${WORKSPACE}"
+        DOCKER_COMPOSE_DIR = "${WORKSPACE}"  // The root of your GitHub repo
     }
 
     stages {
@@ -16,29 +16,44 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                sh 'docker-compose build'
+                echo "Building backend, frontend, and Nginx Docker images..."
+                dir("${DOCKER_COMPOSE_DIR}") {
+                    sh 'docker compose build'
+                }
             }
         }
 
         stage('Run Containers') {
             steps {
-                sh 'docker-compose up -d'
+                echo "Starting containers..."
+                dir("${DOCKER_COMPOSE_DIR}") {
+                    sh 'docker compose up -d'
+                }
             }
         }
 
         stage('Test') {
             steps {
-                echo "Add your tests here"
+                echo "Optional: add tests here"
+                // Example: run backend tests
+                // sh 'docker compose run --rm backend npm test'
+            }
+        }
+
+        stage('Cleanup (Optional)') {
+            steps {
+                echo "Cleaning up unused images and containers..."
+                sh 'docker system prune -f'
             }
         }
     }
 
     post {
         success {
-            echo "Pipeline finished successfully!"
+            echo "Pipeline finished successfully! 🚀"
         }
         failure {
-            echo "Pipeline failed!"
+            echo "Pipeline failed! ❌"
         }
     }
 }
