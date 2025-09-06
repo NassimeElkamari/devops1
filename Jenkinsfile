@@ -2,22 +2,27 @@ pipeline {
     agent any
 
     environment {
-        REPO_DIR = "${WORKSPACE}/devops1"  // Directory to clone your repo
+        DOCKER_COMPOSE_DIR = "${WORKSPACE}" // root of your GitHub repo
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Cloning GitHub repository..."
-                sh 'rm -rf $REPO_DIR'  // Clear old checkout
-                sh 'git clone -b main https://github.com/NassimeElkamari/devops1.git $REPO_DIR'
+                // Checkout the repo cleanly
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[
+                              url: 'https://github.com/NassimeElkamari/devops1.git',
+                              credentialsId: 'github-credentials-id'
+                          ]],
+                          extensions: [[$class: 'WipeWorkspace']]])
             }
         }
 
         stage('Build Docker Images') {
             steps {
                 echo "Building backend, frontend, and Nginx Docker images..."
-                dir("${REPO_DIR}") {
+                dir("${DOCKER_COMPOSE_DIR}") {
                     sh 'docker compose build'
                 }
             }
@@ -26,22 +31,23 @@ pipeline {
         stage('Run Containers') {
             steps {
                 echo "Starting containers..."
-                dir("${REPO_DIR}") {
+                dir("${DOCKER_COMPOSE_DIR}") {
                     sh 'docker compose up -d'
                 }
             }
         }
 
-        stage('Optional Test') {
+        stage('Test') {
             steps {
-                echo "You can run backend/frontend tests here if needed..."
-                // Example: dir("${REPO_DIR}") { sh 'docker compose run --rm backend npm test' }
+                echo "Optional: add tests here"
+                // Example: run backend tests
+                // sh 'docker compose run --rm backend npm test'
             }
         }
 
         stage('Cleanup (Optional)') {
             steps {
-                echo "Cleaning up unused images and containers..."
+                echo "Cleaning up unused Docker resources..."
                 sh 'docker system prune -f'
             }
         }
