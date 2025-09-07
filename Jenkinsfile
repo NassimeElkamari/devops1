@@ -4,10 +4,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Explicit checkout with credentials
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']],  // change to */master if needed
+                    branches: [[name: '*/main']],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [],
                     userRemoteConfigs: [[
@@ -21,12 +20,23 @@ pipeline {
         stage('Build') {
             steps {
                 echo "✅ Build stage running..."
+                // Add any build steps here (npm install, mvn compile, etc.)
             }
         }
 
         stage('Run Containers') {
             steps {
-                sh 'docker compose up -d'
+                script {
+                    // Check Docker availability and permissions
+                    try {
+                        // Try without sudo first
+                        sh 'docker compose up -d'
+                    } catch (Exception e) {
+                        echo "Docker command failed, trying with sudo..."
+                        // Try with sudo (requires passwordless sudo setup)
+                        sh 'sudo docker compose up -d'
+                    }
+                }
             }
         }
     }
